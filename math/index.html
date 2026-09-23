@@ -3204,6 +3204,7 @@ const onlineFirebaseConfig={
   appId:'1:168828714389:web:7771162f19156535b28a9c'
 };
 let onlineDb=null,onlineAuth=null,onlineReady=false,onlineUploadTimer=null,onlineCardsUnsubscribe=null;
+const plazaHelpText=plaza.querySelector('.plaza-help');
 const onlineJoin=document.createElement('div');
 onlineJoin.id='onlineJoin';onlineJoin.className='plaza-help';onlineJoin.hidden=true;
 onlineJoin.innerHTML='<strong>선생님 승인을 기다리는 중이에요 🔒</strong><br>아래 등록 번호를 선생님께 보여주세요. 승인되면 친구의 캐릭터가 자동으로 나타나요.<br><code id="onlineUid" style="overflow-wrap:anywhere"></code> <button type="button" id="copyOnlineUid" class="secondary-button">번호 복사</button>';
@@ -3212,7 +3213,7 @@ $('copyOnlineUid').onclick=async()=>{try{await navigator.clipboard.writeText($('
 function setOnlineReady(value){
   onlineReady=value;onlineJoin.hidden=value||!onlineAuth?.currentUser;
   plaza.querySelector('.plaza-actions').style.display=value?'none':'';
-  plaza.querySelector('.plaza-help').textContent=value?'친구의 캐릭터와 모험 기록이 자동으로 갱신돼요.':'이 기기의 탐험가는 바로 만날 수 있어요. 선생님 승인 전에는 카드 파일로 친구와 교환할 수 있어요.';
+  plazaHelpText.textContent=value?'친구의 캐릭터와 모험 기록이 자동으로 갱신돼요.':'이 기기의 탐험가는 바로 만날 수 있어요. 선생님 승인 전에는 카드 파일로 친구와 교환할 수 있어요.';
   if(!value){onlineCards=[];if(onlineCardsUnsubscribe){onlineCardsUnsubscribe();onlineCardsUnsubscribe=null;}renderPlaza();}
 }
 async function sendOnlineCard(){
