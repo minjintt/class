@@ -130,6 +130,33 @@ button { color: inherit; }
 .question-card h2 { margin: 30px 0 34px; text-align: center; font-size: clamp(1.5rem, 3.6vw, 2.2rem); line-height: 1.65; word-break: keep-all; }
 .frac { display: inline-flex; vertical-align: middle; flex-direction: column; align-items: center; line-height: 1.05; min-width: 1.35em; margin: 0 .12em; }
 .mixed-whole { margin-left: .08em; }
+/* 전투 속 수학 문제 */
+.battle-actions[hidden], .battle-quiz[hidden] { display: none; }
+.battle-quiz { padding: 14px; border: 2px solid #e2d6fa; border-radius: 18px; background: #fbf9ff; }
+.bq-head { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 10px; margin: 0; font-family: "Jua", sans-serif; font-size: 1.28rem; font-weight: 400; color: #5b3aa0; }
+.bq-head.refute { color: #b3372a; }
+.bq-head small { font-family: inherit; font-size: .8rem; font-weight: 800; color: var(--muted); }
+.bq-claim { margin: 10px 0 4px; padding: 10px 14px; border: 2px dashed #ff9a8c; border-radius: 14px; background: #fff0ed; color: #8a2d20; font-weight: 800; line-height: 1.6; }
+.bq-claim b { color: #5a1d14; }
+.bq-claim em { font-style: normal; font-size: .82rem; color: #a2493c; }
+.bq-prompt { margin: 12px 0; color: var(--ink); font-size: 1.1rem; font-weight: 900; line-height: 1.65; }
+.battle-quiz .question-figure { margin: 2px auto 12px; max-width: 360px; }
+.bq-choices { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 9px; }
+.battle-choice { min-height: 58px; padding: 8px 10px; border: 2px solid #d9e8f3; border-radius: 15px; background: white; color: var(--ink); font-size: 1.12rem; font-weight: 900; cursor: pointer; transition: .15s ease; }
+.battle-choice:hover:not(:disabled), .battle-choice:focus-visible:not(:disabled) { border-color: #8d63ca; background: #f6f1ff; outline: none; transform: translateY(-2px); }
+.battle-choice:disabled { cursor: default; }
+.battle-choice.correct { border-color: #44c4a7; background: #ecfbf7; color: #126b58; }
+.battle-choice.wrong { border-color: #ff9a8c; background: #fff0ed; color: #a63a2b; }
+.bq-feedback { margin-top: 12px; padding: 12px 14px; border-radius: 14px; background: #f4f7fa; color: var(--ink); font-weight: 800; }
+.bq-feedback.good { background: #ecfbf7; color: #126b58; }
+.bq-feedback p { margin: 6px 0; font-weight: 700; line-height: 1.65; }
+.bq-feedback small { display: block; margin-bottom: 10px; color: var(--muted); }
+.boss-fighter.casting { box-shadow: 0 0 0 3px rgba(141,99,202,.35), 0 0 26px rgba(141,99,202,.38); }
+.boss-fighter.enraged { box-shadow: 0 0 0 3px rgba(232,81,61,.38), 0 0 28px rgba(232,81,61,.35); }
+.boss-fighter.enraged .battle-avatar { filter: saturate(1.35) hue-rotate(-14deg); }
+.battle-math-summary { margin: 6px 0 0; color: var(--muted); font-size: .9rem; font-weight: 800; }
+@media (prefers-reduced-motion: no-preference) { .boss-fighter.casting { animation: castPulse 1.3s ease-in-out infinite; } }
+@keyframes castPulse { 50% { box-shadow: 0 0 0 5px rgba(141,99,202,.22), 0 0 38px rgba(141,99,202,.5); } }
 .backup-section p { margin: 0 0 10px; color: var(--muted); font-size: .86rem; font-weight: 700; line-height: 1.55; }
 .question-figure { max-width: 440px; margin: -14px auto 28px; padding: 10px 12px; border-radius: 20px; background: #f7fbff; border: 1px solid var(--line); }
 .question-figure[hidden] { display: none; }
@@ -698,10 +725,11 @@ button { color: inherit; }
           <div id="battleLog" class="battle-log">사용할 행동을 선택하세요.</div>
           <div class="battle-actions" id="battleActions">
             <button type="button" data-action="attack"><span>⚔️</span><strong>기본 공격</strong><small>안정적인 공격</small></button>
-            <button type="button" data-action="skill"><span>💥</span><strong>집중 일격</strong><small>집중력 3 사용</small></button>
+            <button type="button" data-action="skill"><span>🌟</span><strong>수학 필살기</strong><small>집중력 3 · 맞히면 2배</small></button>
             <button type="button" data-action="heal"><span>💚</span><strong>회복</strong><small>전투당 1회</small></button>
             <button type="button" data-action="guard"><span>🛡️</span><strong>방어</strong><small>받는 피해 감소</small></button>
           </div>
+          <div id="battleQuiz" class="battle-quiz" hidden aria-live="polite"></div>
         </div>
         <div id="battleResultPanel" class="battle-result" hidden>
           <div id="battleResultIcon">🏆</div>
@@ -941,7 +969,7 @@ function jong(word) {
   if (/[MN]$/i.test(w)) return "c";
   return "";
 }
-const JOSA = { 을: ["을", "를"], 를: ["을", "를"], 은: ["은", "는"], 는: ["은", "는"], 이: ["이", "가"], 가: ["이", "가"], 과: ["과", "와"], 와: ["과", "와"], 이에요: ["이에요", "예요"], 예요: ["이에요", "예요"] };
+const JOSA = { 을: ["을", "를"], 를: ["을", "를"], 은: ["은", "는"], 는: ["은", "는"], 이: ["이", "가"], 가: ["이", "가"], 과: ["과", "와"], 와: ["과", "와"], 이에요: ["이에요", "예요"], 예요: ["이에요", "예요"], 이야: ["이야", "야"], 야: ["이야", "야"] };
 function J(word, particle) {
   const t = jong(word);
   if (particle === "으로" || particle === "로") return `${word}${t === "c" ? "으로" : "로"}`;
@@ -1027,6 +1055,8 @@ function makeQ(prompt, answer, wrongs = [], hints = DEFAULT_HINTS, explanation =
   }
   const q = { prompt, answer, choices: shuffle([answer, ...chosen]), hints, explanation };
   if (opts.figure) q.figure = opts.figure;
+  const traps = chosen.filter((x) => given.includes(x));          // 오개념에서 나온 오답(전투의 '거짓 주문'에 사용)
+  if (traps.length) q.traps = traps;
   return q;
 }
 const Q = (prompt, answer, wrongs, h1, h2, explanation, opts = {}) => makeQ(prompt, answer, wrongs, [h1, h2], explanation, opts);
@@ -2967,6 +2997,7 @@ function startBattle(boss) {
   battle = {
     boss: tuned, stats, playerHp: stats.hp, bossHp: tuned.hp, focus: stats.focus,
     healUsed: false, guarding: false, turn: 1, busy: false, over: false, charge,
+    math: { skill: { asked: 0, correct: 0 }, refute: { asked: 0, correct: 0 } }, asked: new Set(), enraged: false,
     log: charge
       ? `${tuned.name}이(가) 나타났어요! 탐험 기운 ${charge}개로 공격력이 올랐어요.`
       : `${tuned.name}이(가) 나타났어요! 사용할 행동을 선택하세요.`,
@@ -3378,8 +3409,15 @@ finishBattle=function(victory){
     if(!profile().owned.includes(key)) profile().owned.push(key);
     profile().statPoints+=1;
   }
+  const math=battle.math;
+  closeBattleQuiz(null);
   originalFinishBattle(victory);
   if(victory && first && b.rewardValue) $('battleResultText').textContent+=' 전용 망토와 성장점수 1점 획득! 꾸미기 → 의상에서 착용해 보세요.';
+  let summary=$('battleMathSummary');
+  if(!summary){summary=document.createElement('p');summary.id='battleMathSummary';summary.className='battle-math-summary';$('battleResultText').after(summary);}
+  const asked=math?math.skill.asked+math.refute.asked:0, correct=math?math.skill.correct+math.refute.correct:0;
+  summary.textContent=!asked?'':`🌟 수학 필살기 ${math.skill.correct}/${math.skill.asked} · 😈 거짓 주문 깨기 ${math.refute.correct}/${math.refute.asked}`
+    +(asked>correct?(victory?' · 틀린 문제는 오답 노트에 담았어요.':' · 틀린 문제를 오답 노트에서 복습하면 필살기가 더 강해져요!'):' · 모두 정답!');
 };
 
 
@@ -3435,11 +3473,16 @@ const originalRenderBattle=renderBattle;
 renderBattle=function(){originalRenderBattle();if(!battle)return;
   $('turnTitle').textContent=battle.over?'전투 종료':battle.counterSeconds?`반격까지 ${battle.counterSeconds}초`:battle.busy?'전투 진행 중':'내 차례';
   let note=$('bossIntent');if(!note){note=document.createElement('p');note.id='bossIntent';note.className='boss-intent';$('battleLog').after(note);}
-  note.textContent=battle.over?'':battle.counterSeconds?`⏳ ${battle.boss.name}이(가) 반격을 준비해요. ${battle.counterSeconds}초!`:battle.turn%3===0?'⚠ 다음 공격: 강력한 기술 — 방어하면 피해가 60% 줄어요!':'다음 공격: 일반 공격 · 방어 성공 시 집중력 +1';
+  const casting=!battle.over&&battle.turn%3===0;
+  $('bossFighterCard').classList.toggle('casting',casting&&!battle.counterSeconds);
+  $('bossFighterCard').classList.toggle('enraged',!!battle.enraged&&!battle.over);
+  const rage=battle.enraged?'⚡ 분노 상태(공격 +15%) · ':'';
+  note.textContent=battle.over?'':battle.counterSeconds?`⏳ ${battle.boss.name}이(가) 반격을 준비해요. ${battle.counterSeconds}초!`:casting?`${rage}🔮 다음 공격: 거짓 주문 — 진짜 답을 고르면 완전히 막고 되받아쳐요! (방어해 두면 틀려도 피해가 줄어요)`:`${rage}다음 공격: 일반 공격 · 방어 성공 시 집중력 +1`;
 };
 function clearBattleCues(){
   document.querySelectorAll('.battle-action-callout,.battle-countdown').forEach(el=>el.remove());
-  $('bossFighterCard')?.classList.remove('counter-charging');
+  $('bossFighterCard')?.classList.remove('counter-charging','casting','enraged');
+  closeBattleQuiz(null);
 }
 async function battleCallout(text,kind,expected,delay=520){
   if(!expected||battle!==expected)return false;
@@ -3461,20 +3504,123 @@ async function waitForBossCounter(expected){
   counter.remove();bossCard.classList.remove('counter-charging');expected.counterSeconds=0;expected.log=`${expected.boss.name}의 반격이 시작됩니다!`;renderBattle();
   return battle===expected&&!expected.over;
 }
+/* ══════════ 전투 속 수학: 수학 필살기 · 거짓 주문 깨기 ══════════
+   - 필살기: 보스 단원의 문제를 맞히면 공격력 2배, 틀리면 기본 위력으로 공격합니다.
+   - 거짓 주문: 보스의 강한 공격(3턴마다)이 오개념 주장으로 바뀝니다. 진짜 답을 고르면 막고 되받아칩니다.
+   - 제한 시간은 두지 않습니다. 틀린 문제는 해설을 보여 주고 오답 노트에 담습니다. */
+const BATTLE_MATH = { skillHit: 2.0, reflect: 0.6, enrage: 1.15 };
+function battleQuestionFor(b) {
+  let unitId = b.boss.unitId, level;
+  if (unitId) level = b.boss.required >= 3 ? "normal" : "easy";      // 수련(1단계) 보스는 기초, 정복 보스는 실력 문제
+  else {
+    const played = units.filter((u) => clearedLevels(u.id).length);
+    const unit = played.length ? P(played) : P(units.filter((u) => u.semester === 1));
+    const done = clearedLevels(unit.id);
+    unitId = unit.id; level = done.length ? P(done) : "easy";
+  }
+  const types = unitTypes(unitId, level);
+  for (let i = 0; i < 40; i += 1) {
+    let q; try { q = P(types)(); } catch { continue; }
+    if (!validQuestion(q) || b.asked.has(q.prompt)) continue;
+    b.asked.add(q.prompt);
+    return { ...q, unitId, level };
+  }
+  return null;
+}
+function rememberBattleMiss(q) {
+  const p = profile();
+  if (!p || !q) return;
+  p.reviewQueue ||= [];
+  if (!p.reviewQueue.some((x) => x.prompt === q.prompt && x.answer === q.answer)) {
+    const unit = units.find((u) => u.id === q.unitId);
+    p.reviewQueue.push({ unitId: q.unitId, unitTitle: unit?.title, level: q.level, prompt: q.prompt, answer: q.answer, choices: q.choices, hints: q.hints, explanation: q.explanation, figure: q.figure, at: Date.now() });
+    p.reviewQueue = p.reviewQueue.slice(-40);
+  }
+  saveProfiles();
+}
+let battleQuizResolve = null;
+function closeBattleQuiz(result = null) {
+  const panel = $("battleQuiz");
+  if (panel) { panel.hidden = true; panel.replaceChildren(); }
+  if ($("battleActions")) $("battleActions").hidden = false;
+  if (battleQuizResolve) { const done = battleQuizResolve; battleQuizResolve = null; done(result); }
+}
+function battleQuiz(b, kind, q, claim) {
+  closeBattleQuiz(null);
+  return new Promise((resolve) => {
+    battleQuizResolve = resolve;
+    const panel = $("battleQuiz"), refute = kind === "refute";
+    const options = refute ? shuffle(q.choices.filter((c) => c !== claim)) : q.choices;
+    const figure = safeFigure(q.figure);
+    panel.innerHTML = `<h3 class="bq-head ${kind}">${refute ? "😈 거짓 주문 깨기" : "🌟 수학 필살기"}<small>${refute ? "진짜 답을 고르면 공격을 막고 되받아쳐요" : "맞히면 두 배 위력! 시간 제한은 없어요"}</small></h3>`
+      + (refute ? `<p class="bq-claim"><b>${escapeHtml(b.boss.name)}</b> “이 문제의 정답은 바로 ${rich(claim)}!”<br><em>보스의 말은 틀렸어요. 진짜 답을 찾아 주문을 깨세요.</em></p>` : "")
+      + `<p class="bq-prompt">${rich(q.prompt)}</p>`
+      + (figure ? `<div class="question-figure">${figure}</div>` : "")
+      + `<div class="bq-choices">${options.map((c, i) => `<button type="button" class="battle-choice" data-i="${i}" aria-label="${i + 1}번 ${escapeHtml(speakMath(c))}">${rich(c)}</button>`).join("")}</div>`
+      + `<div class="bq-feedback" hidden></div>`;
+    panel.querySelectorAll(".battle-choice").forEach((button) => button.addEventListener("click", () => {
+      if (button.disabled || battleQuizResolve !== resolve) return;
+      const choice = options[Number(button.dataset.i)], ok = choice === q.answer;
+      panel.querySelectorAll(".battle-choice").forEach((x) => { x.disabled = true; if (options[Number(x.dataset.i)] === q.answer) x.classList.add("correct"); });
+      if (!ok) button.classList.add("wrong");
+      const feedback = panel.querySelector(".bq-feedback");
+      feedback.hidden = false;
+      if (ok) {
+        feedback.classList.add("good");
+        feedback.innerHTML = `<strong>정답! ${refute ? "거짓 주문을 깨뜨렸어요!" : "필살기 발동!"}</strong>`;
+        setTimeout(() => { if (battleQuizResolve === resolve) closeBattleQuiz(true); }, 800);
+      } else {
+        rememberBattleMiss(q);
+        feedback.innerHTML = `<strong>정답은 ${rich(q.answer)}</strong>${refute ? `<p>보스가 말한 ${rich(claim)}도, 고른 ${rich(choice)}도 아니었어요.</p>` : ""}<p>${rich(q.explanation)}</p><small>이 문제는 오답 노트에 담았어요.</small><button type="button" class="primary-button bq-continue">확인하고 계속하기</button>`;
+        const next = feedback.querySelector(".bq-continue");
+        next.addEventListener("click", () => closeBattleQuiz(false));
+        next.focus();
+      }
+    }));
+    $("battleActions").hidden = true;
+    panel.hidden = false;
+    try { panel.scrollIntoView({ block: "nearest", behavior: motionAllowed() ? "smooth" : "auto" }); } catch { /* 무시 */ }
+    panel.querySelector(".battle-choice")?.focus({ preventScroll: true });
+  });
+}
+async function checkEnrage(b) {
+  if (b.enraged || b.bossHp <= 0 || b.bossHp > b.boss.hp / 2) return true;
+  b.enraged = true;
+  renderBattle();
+  return battleCallout(`⚡ ${b.boss.name} 분노! 공격이 강해져요`, "boss", b, 760);
+}
+document.addEventListener("keydown", (event) => {
+  const panel = $("battleQuiz");
+  if (!panel || panel.hidden || !$("battleView").classList.contains("active")) return;
+  const n = Number(event.key);
+  if (n >= 1 && n <= 4) panel.querySelectorAll(".battle-choice")[n - 1]?.click();
+});
 playerBattleAction=async function(action){
   if(!battle||battle.busy||battle.over||!['attack','skill','guard','heal'].includes(action))return;
-  const b=battle,p=profile(),s=b.stats;
+  const b=battle,s=b.stats;
   if(action==='skill'&&b.focus<3){showToast('집중력이 3 필요해요.');return;}
   if(action==='heal'&&(b.healUsed||b.playerHp>=s.hp)){showToast(b.healUsed?'회복은 전투당 한 번이에요.':'체력이 가득 찼어요.');return;}
   b.busy=true;b.counterSeconds=0;renderBattle();
   if(action==='attack'||action==='skill'){
-    const crit=Math.random()*100<(Number(CONFIG.battle.critChance)||0),skill=action==='skill';
-    if(skill)b.focus-=3;
-    const damage=Math.max(1,Math.round((s.attack*(skill?1.65:1)+rand(0,3)-b.boss.defense)*(crit?1.7:1)));
-    if(!await battleCallout(skill?'💥 집중 일격!':'⚔️ 기본 공격!',skill?'skill':'player',b,skill?620:480))return;
-    swingCharacter();await projectile('playerFighterCard','bossFighterCard',skill?'skill':'slash');if(battle!==b)return;
-    b.bossHp=Math.max(0,b.bossHp-damage);b.log=`${skill?'집중 일격':'기본 공격'}${crit?' · 치명타!':''} ${damage} 피해!`;
-    impact('bossFighterCard');hurtBoss();floatNumber('bossFighterCard',`−${damage}`,crit?'crit':'damage');
+    const skill=action==='skill';let power=1,mathHit=false;
+    if(skill){
+      b.focus-=3;
+      const q=battleQuestionFor(b);
+      if(q){
+        b.log='필살기 문제! 맞히면 두 배 위력으로 공격해요.';renderBattle();
+        const ok=await battleQuiz(b,'skill',q);if(battle!==b||b.over||ok===null)return;
+        b.math.skill.asked++;if(ok){b.math.skill.correct++;mathHit=true;power=BATTLE_MATH.skillHit;}
+      }else power=1.65;
+    }
+    const crit=Math.random()*100<(Number(CONFIG.battle.critChance)||0);
+    const damage=Math.max(1,Math.round((s.attack*power+rand(0,3)-b.boss.defense)*(crit?1.7:1)));
+    if(!await battleCallout(mathHit?'🌟 수학 필살기!':skill?'⚔️ 일격!':'⚔️ 기본 공격!',mathHit?'skill':'player',b,mathHit?700:480))return;
+    swingCharacter();await projectile('playerFighterCard','bossFighterCard',mathHit?'skill':'slash');if(battle!==b)return;
+    b.bossHp=Math.max(0,b.bossHp-damage);
+    b.log=`${mathHit?'수학 필살기':skill?'일격(기본 위력)':'기본 공격'}${crit?' · 치명타!':''} ${damage} 피해!`;
+    impact('bossFighterCard');hurtBoss();floatNumber('bossFighterCard',`−${damage}`,crit||mathHit?'crit':'damage');
+    if(mathHit)arenaEffect({flash:true,quake:true});
+    renderBattle();if(b.bossHp>0&&!await checkEnrage(b))return;
   }else if(action==='guard'){
     if(!await battleCallout('🛡️ 방어 태세!', 'guard',b,420))return;
     b.guarding=true;b.log='방어 자세! 피해를 줄이고 집중력을 모아요.';burstEffect('playerFighterCard','🛡️');floatNumber('playerFighterCard','방어!','guard');
@@ -3488,15 +3634,40 @@ playerBattleAction=async function(action){
 };
 bossBattleTurn=async function(expected=battle){
   const b=expected;if(!b||battle!==b||b.over)return;
-  const special=b.turn%3===0,guard=b.guarding;
-  if(!await battleCallout(special?'🔥 보스의 필살기!':'💢 보스의 반격!', 'boss',b,special?650:480))return;
+  const special=b.turn%3===0,guard=b.guarding,atk=b.boss.attack*(b.enraged?BATTLE_MATH.enrage:1);
+  let spell=null;
+  if(special){
+    const q=battleQuestionFor(b);
+    if(q){
+      const claim=P(q.traps&&q.traps.length?q.traps:q.choices.filter((c)=>c!==q.answer));
+      if(!await battleCallout('😈 거짓 주문!','boss',b,650))return;
+      b.log=`${b.boss.name}이(가) 거짓 주문을 외워요! 진짜 답을 골라 주문을 깨세요.`;renderBattle();
+      const ok=await battleQuiz(b,'refute',q,claim);if(battle!==b||b.over||ok===null)return;
+      b.math.refute.asked++;spell=ok?'broken':'hit';
+      if(ok){
+        b.math.refute.correct++;
+        if(!await battleCallout('🛡️ 거짓 주문 깨기!','guard',b,650))return;
+        impact('playerFighterCard',true);floatNumber('playerFighterCard','완벽 방어!','guard');
+        await projectile('playerFighterCard','bossFighterCard','skill');if(battle!==b)return;
+        const reflect=Math.max(1,Math.round(atk*BATTLE_MATH.reflect));
+        b.bossHp=Math.max(0,b.bossHp-reflect);b.focus=Math.min(b.stats.focus,b.focus+1);
+        impact('bossFighterCard');hurtBoss();floatNumber('bossFighterCard',`−${reflect}`,'crit');
+        b.log=`거짓 주문을 깨고 되받아쳤어요! ${reflect} 피해 · 집중력 +1`;b.guarding=false;
+        renderBattle();await combatDelay(650);if(battle!==b)return;
+        if(b.bossHp<=0){finishBattle(true);return;}
+        if(!await checkEnrage(b))return;
+        b.turn++;b.busy=false;renderBattle();return;
+      }
+    }
+  }
+  if(!await battleCallout(spell==='hit'?'🔥 주문에 걸렸어요!':special?'🔥 보스의 필살기!':'💢 보스의 반격!','boss',b,special?650:480))return;
   await projectile('bossFighterCard','playerFighterCard',special?'fire':'enemy');if(battle!==b)return;
-  let damage=Math.max(1,Math.round(b.boss.attack*(special?1.6:1))+rand(-2,2)-b.stats.defense);
+  let damage=Math.max(1,Math.round(atk*(special?1.6:1))+rand(-2,2)-b.stats.defense);
   if(guard)damage=Math.max(1,Math.ceil(damage*.4));
   b.playerHp=Math.max(0,b.playerHp-damage);if(guard)b.focus=Math.min(b.stats.focus,b.focus+1);
   impact('playerFighterCard',guard);hurtCharacter();floatNumber('playerFighterCard',`−${damage}`);
   if(guard)floatNumber('playerFighterCard','방어 성공 · 집중 +1','guard');
-  b.log=`${b.boss.name}의 ${special?'강력한 기술':'공격'}! ${damage} 피해.${guard?' 방패로 막아냈어요!':''}`;
+  b.log=`${b.boss.name}의 ${spell==='hit'?'거짓 주문':special?'강력한 기술':'공격'}! ${damage} 피해.${guard?' 방패로 막아냈어요!':''}`;
   renderBattle();await combatDelay(650);if(battle!==b)return;
   b.guarding=false;if(b.playerHp<=0){finishBattle(false);return;}b.turn++;b.busy=false;renderBattle();
 };
