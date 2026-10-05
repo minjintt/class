@@ -352,7 +352,35 @@ body.standalone .standalone-note{display:block}
 .ico:disabled{opacity:.25; cursor:default}
 
 /* ---------- 약속 ---------- */
-.rules-wrap{max-width:1300px; margin:0 auto}
+#pane-rules.active{display:flex}
+.rules-grid{flex:1; min-height:0; width:100%; max-width:1900px; margin:0 auto; display:grid; grid-template-columns:minmax(300px,36%) minmax(0,1fr); gap:clamp(20px,3vw,56px)}
+.rules-main{min-width:0; min-height:0; overflow:auto; padding:2px 4px 8px 2px}
+.rules-clock{display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; min-height:0; padding:clamp(24px,3vw,48px); background:var(--card); border:1px solid var(--line); border-radius:28px; box-shadow:0 3px 16px #18372c08}
+.rc-ymd{font-size:clamp(1.2rem,2vw,2.3rem); font-weight:800; color:var(--muted); letter-spacing:-.01em; font-variant-numeric:tabular-nums}
+.rc-dow{font-size:clamp(2.2rem,4.4vw,5.2rem); font-weight:800; line-height:1.1; color:var(--accent); letter-spacing:-.03em}
+.rc-day{padding-bottom:clamp(14px,3vh,32px); margin-bottom:clamp(14px,3vh,32px); border-bottom:2px solid var(--line); width:100%}
+.rc-clock{display:flex; flex-direction:column; align-items:center}
+.rc-ampm{font-size:clamp(1.3rem,2.3vw,2.8rem); font-weight:800; color:var(--accent); opacity:.85}
+.rc-main{display:flex; align-items:baseline; justify-content:center; gap:.06em; white-space:nowrap; line-height:.95}
+.rc-hm{font-size:clamp(3.4rem,min(7.2vw,22vh),10rem); font-weight:800; letter-spacing:-.04em; font-variant-numeric:tabular-nums}
+.rc-sec{font-size:clamp(1.3rem,min(2.6vw,6vh),3.4rem); font-weight:800; color:var(--muted); font-variant-numeric:tabular-nums}
+.rc-period{display:inline-block; margin-top:clamp(14px,2.4vh,28px); padding:8px 16px; border-radius:999px; background:var(--accent-soft); font-size:clamp(1rem,1.5vw,1.7rem); min-height:0}
+.rc-period:empty{display:none}
+.rules-wrap{max-width:none; margin:0}
+@media (max-width:900px){
+  #pane-rules.active{display:block}
+  .rules-grid{display:flex; flex-direction:column; gap:16px}
+  .rules-main{overflow:visible}
+  .rules-clock{align-items:center; text-align:center; padding:18px; background:var(--card); border:1px solid var(--line); border-radius:var(--radius)}
+  .rc-day{display:flex; align-items:baseline; justify-content:center; gap:10px; padding-bottom:0; margin-bottom:0; border-bottom:0}
+  .rc-ymd{font-size:1.05rem}
+  .rc-dow{font-size:1.3rem}
+  .rc-clock{margin:6px 0 0; padding:0; display:flex; flex-direction:column; align-items:center}
+  .rc-ampm{font-size:1.1rem}
+  .rc-hm{font-size:clamp(3rem,15vw,4.6rem)}
+  .rc-sec{font-size:1.3rem}
+  .rc-period{margin-top:10px; font-size:.95rem}
+}
 .rule-list{list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:14px}
 .rule{
   display:flex; align-items:center; gap:clamp(14px,2vw,28px);
@@ -539,6 +567,16 @@ body.standalone .standalone-note{display:block}
 
   <!-- 약속 -->
   <section class="pane" role="tabpanel" aria-labelledby="tab-rules" id="pane-rules">
+   <div class="rules-grid">
+    <aside class="rules-clock" aria-label="현재 시각">
+      <div class="rc-day"><div class="rc-ymd" id="rc-ymd"></div><div class="rc-dow" id="rc-dow"></div></div>
+      <div class="rc-clock">
+        <div class="rc-ampm" id="rc-ampm"></div>
+        <div class="rc-main"><span class="rc-hm" id="rc-hm">--:--</span><span class="rc-sec" id="rc-sec"></span></div>
+        <div class="period-now js-period rc-period"></div>
+      </div>
+    </aside>
+    <div class="rules-main">
     <div class="rules-wrap need-auth" id="rules-wrap">
       <div class="page-heading"><h1>우리 반 약속</h1><button class="btn small" id="rules-edit">편집</button></div>
       <ol class="rule-list" id="rule-list"></ol>
@@ -554,6 +592,8 @@ body.standalone .standalone-note{display:block}
       <button class="btn primary big js-login">Google로 로그인</button>
       <p class="note standalone-note">홈 화면 앱에서는 구글 로그인이 안 될 수 있습니다. 로그인이 안 되면 Safari에서 이 주소를 열어 사용해 주세요.</p>
     </div>
+    </div>
+   </div>
   </section>
 
   <!-- 수업 -->
@@ -563,7 +603,7 @@ body.standalone .standalone-note{display:block}
         <div class="card class-clock">
           <div class="js-time">--:--:--</div>
           <div class="js-date"></div>
-          <div class="period-now" id="period-now"></div>
+          <div class="period-now js-period" id="period-now"></div>
           <div class="bell-bar">
             <button type="button" class="btn small bell-toggle" id="bell-toggle" aria-pressed="false">🔕 종소리 꺼짐</button>
             <button type="button" class="btn small" id="bell-open">시정표</button>
@@ -728,6 +768,13 @@ body.standalone .standalone-note{display:block}
     const ds = d.getFullYear() + '년 ' + (d.getMonth() + 1) + '월 ' + d.getDate() + '일 ' + DOW[d.getDay()] + '요일';
     $$('.js-time').forEach(e => { if (e.textContent !== t) e.textContent = t; });
     $$('.js-date').forEach(e => { if (e.textContent !== ds) e.textContent = ds; });
+    const setText = (sel, v) => { const e = $(sel); if (e && e.textContent !== v) e.textContent = v; };
+    const h = d.getHours();
+    setText('#rc-ymd', d.getFullYear() + '. ' + pad(d.getMonth() + 1) + '. ' + pad(d.getDate()));
+    setText('#rc-dow', DOW[d.getDay()] + '요일');
+    setText('#rc-ampm', h < 12 ? '오전' : '오후');
+    setText('#rc-hm', (h % 12 || 12) + ':' + pad(d.getMinutes()));
+    setText('#rc-sec', ':' + pad(d.getSeconds()));
     const ts = todayStr();
     if (ts !== lastDay){ lastDay = ts; document.dispatchEvent(new CustomEvent('daychange')); }
   }
@@ -987,7 +1034,7 @@ body.standalone .standalone-note{display:block}
       else if (next) text = '쉬는 시간 · ' + next.name + ' 시작까지 ' + left(toMin(next.start));
       else text = '오늘 수업 끝';
     }
-    if (text !== lastPeriodText){ $('#period-now').textContent = text; lastPeriodText = text; }
+    if (text !== lastPeriodText){ $$('.js-period').forEach(e => { e.textContent = text; }); lastPeriodText = text; }
   }
 
   // 정해진 시각부터 90초 안에 한 번만 울립니다. (창이 뒤에 있어 타이머가 늦게 돌아도 놓치지 않도록)
