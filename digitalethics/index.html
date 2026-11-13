@@ -1281,6 +1281,39 @@ function showTimeout(){
     <p>글리치가 도망가려고 해요! 조금만 더 힘내면 잡을 수 있어요. 선생님과 함께 마지막까지 도전해 봐요.</p>
     <div class="row end"><button class="btn mag" data-a="overtime">연장전 계속하기</button></div></div></div>`;
 }
+/* teacher undo: which fields hold the answers of each mission step, so a step can be replayed clean */
+const STEP_FIELDS = {
+  s1:[{found:[]},{pwBad:[]},{acts:[]}],
+  s2:[{sel:[]},{fixBad:[]},{help:[]}],
+  s3:[{bad:[]},{flags:[]},{actBad:[]}],
+  s4:[{found:[]},{q:0}],
+  s5:[{bad:[]},{sel:[]},{actBad:[]}],
+};
+function clearStep(key, step){ Object.assign(S[key], JSON.parse(JSON.stringify(STEP_FIELDS[key][step]||{}))); }
+/* the place one step back from where the team is now, with a label for the menu */
+function prevPlace(){
+  const sc = S.scene, m = /^s(\d)$/.exec(sc);
+  /* a success or evidence sheet is still open: step back means replaying the mission just solved */
+  if(S.cluePending!==null && S.cluePending!==undefined){ const i = S.cluePending, key = "s"+(i+1), step = S[key].step;
+    return { label:`잠금 ${i+1} · 미션 ${step+1}`, apply(){ S.done = S.done.filter(x=>x!==i); clearStep(key, step); go(key); } }; }
+  if(S.pending){ const key = S.pending, step = S[key].step;
+    return { label:`잠금 ${key.slice(1)} · 미션 ${step+1}`, apply(){ clearStep(key, step); go(key); } }; }
+  if(sc==="intro") return S.intro>0
+    ? { label:`도입 브리핑 ${S.intro}/${INTRO.length}`, apply(){ S.intro--; go("intro"); } }
+    : { label:"시작 화면", apply(){ go("title"); } };
+  if(m){
+    const n = +m[1], key = "s"+n, step = S[key].step;
+    if(step>0) return { label:`잠금 ${n} · 미션 ${step}`, apply(){ clearStep(key, step); S[key].step = step-1; clearStep(key, step-1); S.done = S.done.filter(x=>x!==n-1); go(key); } };
+    if(n===1) return { label:"도입 브리핑 마지막 장", apply(){ S.intro = INTRO.length-1; go("intro"); } };
+    const pk = "s"+(n-1), last = STAGES[n-2].steps.length-1;
+    return { label:`잠금 ${n-1} · 미션 ${last+1}`, apply(){ clearStep(key, 0); S.done = S.done.filter(x=>x!==n-2); S[pk].step = last; clearStep(pk, last); go(pk); } };
+  }
+  if(sc==="final"){ const last = STAGES[4].steps.length-1;
+    return { label:`잠금 5 · 미션 ${last+1}`, apply(){ S.fin = {pick:null, out:[]}; S.done = S.done.filter(x=>x!==4); S.s5.step = last; clearStep("s5", last); go("s5"); } }; }
+  if(sc==="code") return { label:"범인 추리", apply(){ S.code = ""; S.fin = {pick:null, out:[]}; go("final"); } };
+  if(sc==="end") return { label:"복구 코드 입력", apply(){ S.endAt = null; S.code = ""; go("code"); } };
+  return null;
+}
 let logoTaps = [];
 function showTeacher(){
   const i = stageIndex();
@@ -1291,6 +1324,12 @@ function showTeacher(){
     <div><div class="counter" style="margin-bottom:6px">제한시간 (바로 적용)</div>
       <div class="seg">${[10,15,20,40].map(m=>`<button data-a="setDur" data-m="${m}" class="${settings.duration===m*60?"on":""}">${m}분</button>`).join("")}</div></div>
     <button class="tbtn ${settings.untimed?"on":""}" data-a="untimed">시간 제한: ${settings.untimed?"없음":"사용"}</button>
+    <div><div class="counter" style="margin-bottom:6px">되돌리기</div>
+      <div class="tgrid">
+        <button class="tbtn" data-a="back" ${prevPlace()?"":"disabled"}>← 이전 단계로</button>
+        <button class="tbtn" data-a="restartStage" ${i>=0&&i<5?"":"disabled"}>이 잠금 처음부터</button>
+      </div>
+      <p class="tnote" style="margin-top:6px">${prevPlace()?`이전 단계: ${prevPlace().label} (그 단계의 답은 지워지고 다시 풀어요)`:"시작 화면에서는 되돌릴 단계가 없어요."}</p></div>
     <div class="tgrid">
       <button class="tbtn ${settings.cards?"on":""}" data-a="toggleCards">실물 카드 사용: ${settings.cards?"켜짐":"꺼짐"}</button>
       <button class="tbtn" data-a="skip" ${i>=0&&i<5?"":"disabled"}>이 미션 건너뛰기</button>
@@ -1327,6 +1366,12 @@ Object.assign(A, {
   untimed(){settings.untimed=!settings.untimed;S.overtime=false;timeoutShown=false;$("#alertHost").innerHTML="";save();render();showTeacher();},
   jump(el){const n=+el.dataset.n,key='s'+(n+1); S[key]=fresh()[key];S.done=S.done.filter(i=>i!==n);S.pending=null;S.cluePending=null;S.endAt=null;S.startAt=S.startAt||Date.now();overlay.innerHTML='';go(key);},
   reset(el){ if(el.dataset.sure!=="1"){ el.dataset.sure="1"; el.textContent="정말 처음으로? 한 번 더 누르기"; return; } resetGame(); },
+  back(){ const p = prevPlace(); if(!p) return; S.pending = null; S.cluePending = null; overlay.innerHTML = ""; $("#alertHost").innerHTML = ""; p.apply(); toast(`${p.label}(으)로 돌아왔어요.`, "info", 2600); },
+  restartStage(el){
+    const i = stageIndex(); if(i<0 || i>4) return;
+    if(el.dataset.sure!=="1"){ el.dataset.sure="1"; el.textContent=`잠금 ${i+1}을 처음부터? 한 번 더 누르기`; return; }
+    const key = "s"+(i+1); S[key] = fresh()[key]; S.done = S.done.filter(x=>x!==i); S.pending = null; S.cluePending = null; overlay.innerHTML = ""; go(key);
+  },
 });
 
 function showSound(){
