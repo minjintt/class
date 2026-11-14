@@ -479,6 +479,22 @@ body.uv-active,body.uv-active *{cursor:none!important}
 .page-uv-light{position:fixed;inset:0;z-index:99999;pointer-events:none;overflow:hidden}
 .page-uv-light *{pointer-events:none}
 .page-uv-ink{position:absolute;inset:0;display:flex;align-items:flex-end;justify-content:center;padding-bottom:16%;pointer-events:none;color:#ceffeb;font:800 clamp(30px,4vw,52px)/1.2 var(--f-mono);letter-spacing:.15em;text-shadow:0 0 7px #8affcd,0 0 18px #8f70ff;-webkit-mask-image:radial-gradient(circle 47.5px at var(--x,-200px) var(--y,-200px),#000 55%,transparent 100%);mask-image:radial-gradient(circle 47.5px at var(--x,-200px) var(--y,-200px),#000 55%,transparent 100%)}
+
+/* Photo clues: the touch area is 1.5x the marked frame; the frame itself keeps its size. */
+.clue-photo{overflow:hidden}
+.photo-hotspot.found{border-color:transparent;background:transparent;box-shadow:none}
+.photo-hotspot.found::before{content:"";position:absolute;inset:16.667%;border:2px solid #6ce7d8;border-radius:12px;background:#6ce7d815;box-shadow:0 0 0 2px #041b2780}
+.photo-hotspot.found span{left:calc(16.667% - 6px);top:calc(16.667% - 9px)}
+
+/* Recovery code screen: fill the height with larger portraits, and let a finger or pen drag the UV light. */
+body[data-scene=code] #app{min-height:100%;display:flex;flex-direction:column}
+.code-scene{flex:1;justify-content:center;width:100%}
+.code-scene .reveal{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}
+.code-scene .reveal-pair{display:flex;justify-content:center;gap:12px;touch-action:none;-webkit-touch-callout:none}
+.code-scene .reveal-art{flex:none;margin:0;max-width:none;width:min(calc(50% - 6px),clamp(190px,calc(100dvh - 520px),440px))}
+.code-scene .reveal-art img{-webkit-user-drag:none;-webkit-touch-callout:none}
+body.uv-drag #bay,body.uv-drag #app{touch-action:none}
+@media(max-width:820px){.code-scene .reveal{grid-template-columns:minmax(0,1fr)}.code-scene .reveal-art{width:min(calc(50% - 6px),clamp(190px,calc(100dvh - 740px),440px))}}
 </style>
 
 <div id="shell">
@@ -558,7 +574,7 @@ const STAGES = [
     clue:{ title:"사진 속 소지품", text:"사진 속 손목에서 <b>보라색 시계</b>를 발견했다. 용의자의 소지품과 비교하고, 앞서 모은 증거도 함께 살펴보자." } },
   { short:"저작권", title:"영상 속 음악의 주인",
     steps:[
-      { hint:"광고가 붙는 채널은 ‘돈을 버는 곳’이에요. 그리고 음악을 자르는 것도 ‘바꾸는 것’이에요. 해독 카드에서 NC와 ND의 뜻을 확인하세요.",
+      { hint:"이 영상은 광고 수익을 받는 채널에 올려요. 광고 수익을 받으면 ‘돈을 버는 이용’이에요. 그리고 음악을 자르는 것도 ‘바꾸는 것’이에요. 해독 카드에서 NC와 ND의 뜻을 확인하세요.",
         answer:"Victory Lap (CC BY)" },
       { hint:"이번에는 비영리 영상을 공유해요. NC 곡은 가능하지만, ND 곡은 음악을 자르지 않아도 영상 배경음악으로 넣어 공유하려면 별도 허락이 필요해요.",
         answer:"Neon Rush, Victory Lap (2곡)" },
@@ -648,6 +664,7 @@ const S4_SPOTS = {
  background:{label:"휘어진 모니터 테두리",kind:"편집 의심 단서",x:13,y:21,w:12,h:19,zoom:4,msg:"모니터의 위쪽 모서리가 물결처럼 휘어 있어요. 사진을 편집하는 과정에서 주변 배경까지 변형됐는지 확인해 볼 단서예요."},
  watch:{label:"보라색 시계",kind:"범인 추적 증거",x:15,y:93,w:14,h:14,zoom:3,msg:"손목에 보라색 시계가 보여요. 용의자의 소지품과 비교할 수 있는 증거예요. 다른 증거와 함께 살펴보세요."}
 };
+const S4_HIT = 1.5; /* touch area of a photo clue, relative to its marked frame (CSS inset 16.667% matches this) */
 const S4_QS = [
   { q:"진짜처럼 보이는 영상도 AI로 만든 가짜일 수 있다.", a:"O", why:"요즘 AI는 얼굴과 목소리까지 진짜처럼 만들 수 있어요." },
   { q:"친구 얼굴로 장난 합성 영상을 만드는 건, 재미있으면 괜찮다.", a:"X", why:"허락 없이 얼굴을 합성하면 초상권 침해이고, 친구에게 큰 상처가 되는 사이버폭력이 될 수 있어요." },
@@ -659,7 +676,7 @@ const S4_QS = [
 /* stage 5 */
 const S5_TRACKS = [
   { id:"neon", img:"cover_neon", name:"Neon Rush", by:"작곡: 밤톨사운드", lic:["BY","NC"],
-    why1:"<b>NC</b>는 ‘돈을 벌지 않을 때만’ 쓸 수 있다는 뜻이에요. 광고가 붙는 채널에는 쓸 수 없어요.", ok2:true },
+    why1:"<b>NC</b>는 ‘돈을 벌지 않을 때만’ 쓸 수 있다는 뜻이에요. 이 영상은 광고 수익을 받는 채널에 올리기 때문에 쓸 수 없어요. 수익이 없는 영상이라면 쓸 수 있어요.", ok2:true },
   { id:"boss", img:"cover_boss", name:"Final Boss", by:"작곡: 픽셀오케스트라", lic:["BY","ND"],
     why1:"<b>ND</b> 곡을 영상에 맞춰 배경음악으로 넣어 공유하려면 별도 허락이 필요해요. 음악을 자르지 않아도 같아요.", ok2:false },
   { id:"lap", img:"cover_lap", name:"Victory Lap", by:"작곡: 레벨업스튜디오", lic:["BY"], ok1:true, ok2:true },
@@ -989,7 +1006,7 @@ SCENES.s4=()=>{
  ${mission(`사진에서 <strong>합성·편집이 의심되는 부분 2곳</strong>과 <strong>범인을 찾는 데 도움이 되는 증거 1곳</strong>을 찾아 누르세요.`)}
  <div class="photo-investigation"><section class="photo-panel"><div class="photo-heading"><b>익명 계정에 올라온 사진</b><span>사진을 눌러 조사하기</span></div>
  <div class="clue-photo"><img src="${IMG.deepfake}" alt="헤드셋을 쓴 인물이 게임방에 앉아 있는 사진" draggable="false"><button class="photo-background" data-a="s4miss" aria-label="사진의 다른 부분 살펴보기"></button>
- ${keys.map((k,i)=>{const c=S4_SPOTS[k];return `<button class="photo-hotspot ${found(k)?'found':''}" style="left:${c.x}%;top:${c.y}%;width:${c.w}%;height:${c.h}%" data-a="s4spot" data-k="${k}" aria-label="${c.label} 살펴보기" aria-pressed="${found(k)}">${found(k)?`<span>${i+1}</span>`:''}</button>`}).join('')}</div>
+ ${keys.map((k,i)=>{const c=S4_SPOTS[k];return `<button class="photo-hotspot ${found(k)?'found':''}" style="left:${c.x}%;top:${c.y}%;width:${c.w*S4_HIT}%;height:${c.h*S4_HIT}%" data-a="s4spot" data-k="${k}" aria-label="${c.label} 살펴보기" aria-pressed="${found(k)}">${found(k)?`<span>${i+1}</span>`:''}</button>`}).join('')}</div>
  <p class="photo-caption">학습용으로 합성 흔적을 넣은 사진입니다.</p></section>
  <aside class="clue-notebook"><div class="eyebrow">수사 메모</div><h3>찾은 단서와 증거</h3>
  ${keys.map((k,i)=>`<button class="clue-entry ${found(k)?'found':''}" ${found(k)?`data-a="s4spot" data-k="${k}"`:'disabled'}><span class="clue-number">${found(k)?i+1:'?'}</span><span><small>${S4_SPOTS[k].kind}</small><b>${found(k)?S4_SPOTS[k].label:'아직 찾지 못했어요'}</b>${found(k)?'<em>확대해서 다시 보기</em>':''}</span></button>`).join('')}
@@ -1010,8 +1027,8 @@ SCENES.s5 = () => {
       <div class="tt"><span class="cover">${pic(t.img)}</span><span><b>${esc(t.name)}</b><small>${esc(t.by)}</small></span></div>
       <div class="lic">${t.lic.map(ccBadge).join("")}</div></button>`;
   if(st.step===0) return `<div class="wrap">${stageHead(4)}
-    ${mission(`하늘이가 결승 <strong>하이라이트 영상</strong>을 만들려고 해요. 쓸 수 있는 배경음악 <strong>1곡</strong>을 고르세요.`)}
-    <div class="scenario"><span>광고가 붙는 유튜브 채널</span><span>음악을 영상 길이에 맞게 자름</span></div>
+    ${mission(`하늘이가 결승 <strong>하이라이트 영상</strong>을 만들어 <strong>광고 수익을 받는 유튜브 채널</strong>에 올리려고 해요. 음악은 <strong>영상 길이에 맞게 자를</strong> 거예요. 이 조건에서 쓸 수 있는 배경음악 <strong>1곡</strong>을 고르세요.`)}
+    <div class="scenario"><span>광고 수익을 받는 채널 = 돈을 버는 이용</span><span>음악을 영상 길이에 맞게 자름 = 변경</span></div>
     <div class="s5-grid"><div class="tracks">${S5_TRACKS.map(t=>track(t, st.bad.includes(t.id)?"no":"", "s5pick")).join("")}</div>${decoder}</div>
   </div>`;
   if(st.step===1) return `<div class="wrap">${stageHead(4)}
@@ -1051,7 +1068,7 @@ SCENES.code = () => {
   const uv = settings.cards
     ? `<div class="tablecard">${I.card}<b>럭키펀치의 용의자 파일 뒷면을 UV 라이트로 비춰 보세요</b><p>글리치가 몰래 숨겨 둔 <b style="font-size:inherit;font-family:inherit;color:var(--amber)">계정 복구 코드 4자리</b>가 나타나요.</p></div>`
     : `<div class="counter">이 페이지 어딘가에 숨겨진 계정 복구 코드 4자리를 찾아보세요.</div>`;
-  return `<div class="wrap">
+  return `<div class="wrap code-scene">
   <div class="reveal">
     <div class="reveal-pair">
       <div class="reveal-art">${pic("s_lucky","럭키펀치", suspectArt(SUSPECTS[1]))}${settings.cards?"":`<div class="page-uv-ink" aria-hidden="true">${CODE}</div>`}</div>
@@ -1389,7 +1406,7 @@ let uvController=null, uvLayer=null, uvPosition=null;
 function clearUV(){
  uvController?.abort();uvController=null;
  uvLayer?.remove();uvLayer=null;
- document.body.classList.remove("uv-active");
+ document.body.classList.remove("uv-active","uv-drag");
 }
 function bindUV(){
  if(settings.cards)return;
@@ -1408,11 +1425,19 @@ function bindUV(){
   ink.style.setProperty("--x",(x-r.left)+"px");ink.style.setProperty("--y",(y-r.top)+"px");
  };
  const move=e=>{uvLayer.style.visibility="visible";place(e.clientX,e.clientY);};
+ /* A finger or pen drag would normally scroll the page, and the browser then stops sending pointer moves.
+    When the screen needs no scrolling the whole page gives the drag to the light; otherwise only the portraits do. */
+ const bay=$("#bay"), fits=()=>bay.scrollHeight<=bay.clientHeight+1;
+ const syncDrag=()=>document.body.classList.toggle("uv-drag",fits());
+ syncDrag();
  document.addEventListener("pointermove",move,{signal,passive:true});
  document.addEventListener("pointerdown",move,{signal,passive:true});
+ document.addEventListener("touchmove",e=>{if(fits()||e.target.closest?.(".reveal-pair"))e.preventDefault();},{signal,passive:false});
+ document.addEventListener("contextmenu",e=>{if(e.target.closest?.(".reveal-pair"))e.preventDefault();},{signal});
  document.addEventListener("scroll",()=>place(x,y),{signal,capture:true,passive:true});
- window.addEventListener("resize",()=>place(x,y),{signal});
- document.documentElement.addEventListener("pointerleave",()=>{uvLayer.style.visibility="hidden";},{signal});
+ window.addEventListener("resize",()=>{syncDrag();place(x,y);},{signal});
+ /* a lifted finger or pen leaves the light where it was; only a mouse leaving the window hides it */
+ document.documentElement.addEventListener("pointerleave",e=>{if(e.pointerType==="mouse")uvLayer.style.visibility="hidden";},{signal});
  document.addEventListener("keydown",e=>{
   if(e.target.closest("input,textarea,select"))return;
   const d={ArrowLeft:[-22,0],ArrowRight:[22,0],ArrowUp:[0,-22],ArrowDown:[0,22]}[e.key];
