@@ -642,11 +642,11 @@ const S3_NEWS = [
   { id:"a", fake:true, img:"news_fake", site:"e스포츠 찌라시닷컴", url:"esports-jjirasi.xyz",
     title:"[충격 속보] 하늘 선수 은퇴 선언!!! “다시는 게임 안 해”", meta:"기자: 없음 · 날짜: 없음",
     body:"관계자에 따르면 100% 확실한 소식. 믿기 힘들겠지만 사실이다!!!", share:"지금 바로 친구들에게 공유하세요!" },
-  { id:"b", img:"news_gym", site:"예산 e스포츠 한마당 운영본부", url:"공식 공지사항",
+  { id:"b", img:"news_gym", site:"스타아레나 챔피언십 운영본부", url:"공식 공지사항",
     title:"하늘 선수, 결승전 정상 출전 예정", meta:"작성: 운영본부 · 오늘 오전 10:12",
     body:"계정 해킹 피해를 확인했으며, 선수는 예정대로 결승전에 출전합니다." },
-  { id:"c", img:"news_lock", site:"충남 지역 신문", url:"news 지역면",
-    title:"한마당 선수 계정 해킹 피해… 운영본부 “복구 중”", meta:"김○○ 기자 · 오늘 오전 11:40",
+  { id:"c", img:"news_lock", site:"우리 지역 신문", url:"news 지역면",
+    title:"챔피언십 선수 계정 해킹 피해… 운영본부 “복구 중”", meta:"김○○ 기자 · 오늘 오전 11:40",
     body:"운영본부는 계정 복구를 진행 중이며 수상한 링크를 누르지 말라고 당부했다." },
 ];
 const S3_WRONG = { b:"이 공지는 쓴 곳(운영본부)과 시간이 분명해요. 다른 기사를 살펴보세요.",
@@ -873,7 +873,7 @@ SCENES.title = () => `
 </div>`;
 
 const INTRO = [
-  `<b>[긴급]</b> 제8회 예산 e스포츠 한마당 결승을 앞두고, 대표 선수 <strong>하늘</strong>이의 게임 계정이 해킹당했어요!`,
+  `<b>[긴급]</b> 스타아레나 학생 챔피언십 결승을 앞두고, 대표 선수 <strong>하늘</strong>이의 게임 계정이 해킹당했어요!`,
   `범인은 해커 <em>글리치</em>. 하늘이 계정으로 친구들에게 욕을 하고, <em>가짜 뉴스</em>와 <em>합성 영상</em>까지 퍼뜨리고 있어요.`,
   `글리치가 시스템에 <strong>보안 잠금 5개</strong>를 걸어 놨어요. 잠금마다 미션이 2~3개씩 있고, 잠금을 하나 풀 때마다 글리치의 <strong>증거</strong>가 하나씩 나와요.`,
   `친구들과 <strong>의논해서</strong> 풀어 주세요. 단서를 차근차근 읽고, 막히면 위쪽 <strong>힌트</strong> 버튼을 눌러 보세요. 준비됐나요?`,
@@ -905,14 +905,14 @@ SCENES.s1 = () => {
     <div class="s1-grid">
       <div class="phone"><div class="screen">
         ${spot("url", `<div class="urlbar">${I.warn}<span>http://star-arena-event.xyz/free</span></div>`)}
-        <button class="spot" data-a="s1spot" data-k="hero"><div class="ev-banner">${pic("gems","보석 이벤트")}<h4>한마당 기념 보석 10,000개!</h4></div><div class="ev-sub">스타아레나 공식 이벤트 · 선착순 100명</div></button>
+        <button class="spot" data-a="s1spot" data-k="hero"><div class="ev-banner">${pic("gems","보석 이벤트")}<h4>챔피언십 기념 보석 10,000개!</h4></div><div class="ev-sub">스타아레나 공식 이벤트 · 선착순 100명</div></button>
         ${spot("timer", `<div class="ev-timer">⏰ 5분 안에 입력하지 않으면 보석이 사라져요!</div>`)}
         ${spot("form", `<div class="ev-form"><label>게임 아이디</label><div class="inp">아이디 입력</div><label>비밀번호</label><div class="inp">●●●●●●●●</div><label>휴대폰 인증번호 6자리</label><div class="inp">문자로 받은 번호 입력</div></div>`)}
-        <button class="spot" data-a="s1spot" data-k="period"><div class="ev-period">이벤트 기간: 11월 1일 ~ 11월 30일</div></button>
+        <button class="spot" data-a="s1spot" data-k="period"><div class="ev-period">이벤트 기간: 결승전 날까지</div></button>
         <button class="spot" data-a="s1spot" data-k="btn"><div class="ev-btn">보석 받기</div></button>
       </div></div>
       <div class="find-list">
-        <div class="dm"><div class="av">?</div><div><div class="nm">모르는 사람 · 오전 2:13</div>🎁 한마당 기념 무료 보석 이벤트! 링크 눌러서 바로 받아~</div></div>
+        <div class="dm"><div class="av">?</div><div><div class="nm">모르는 사람 · 오전 2:13</div>🎁 챔피언십 기념 무료 보석 이벤트! 링크 눌러서 바로 받아~</div></div>
         <div class="counter">찾은 함정 <b>${st.found.length}</b> / 3</div>
         ${["url","timer","form"].map((k,i)=>`<div class="find-item ${f(k)?"on":""}"><span class="n">${i+1}</span>${f(k)?S1_TRAPS[k]:"아직 찾지 못했어요"}</div>`).join("")}
       </div>
