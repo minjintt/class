@@ -495,17 +495,36 @@ body[data-scene=code] #app{min-height:100%;display:flex;flex-direction:column}
 .code-scene .reveal-art img{-webkit-user-drag:none;-webkit-touch-callout:none}
 body.uv-drag #bay,body.uv-drag #app{touch-action:none}
 @media(max-width:820px){.code-scene .reveal{grid-template-columns:minmax(0,1fr)}.code-scene .reveal-art{width:min(calc(50% - 6px),clamp(190px,calc(100dvh - 740px),440px))}}
+
+/* Settings window: one labelled button in the top bar opens it; sections are grouped in cards. */
+.sheet.settings{max-width:920px;gap:16px;border-color:#40546e}
+.set-head{display:flex;justify-content:space-between;align-items:center;gap:12px}
+.set-head h3{font-size:28px;margin:0}
+.set-close{min-height:48px;padding:0 22px;border-radius:12px;border:1px solid #4a607b;background:#1a2b49;font-weight:700;font-size:16px}
+.set-cols{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;align-items:start}
+.set-col{display:flex;flex-direction:column;gap:14px;min-width:0}
+.set-card{display:flex;flex-direction:column;gap:12px;min-width:0;padding:16px;border:1px solid #33475f;border-radius:16px;background:#0d192d}
+.set-card h4{margin:0;font-size:18px;color:var(--cyan)}
+.set-card .tnote{font-size:14px;line-height:1.65}.set-card .tnote b{color:var(--ink)}
+.set-card .tbtn{font-size:16px;min-height:52px}.set-card .tbtn:disabled{opacity:.4}
+.set-row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.set-now{font-size:15px;color:var(--ink-dim)}.set-now b{color:var(--ink);font-size:17px;margin-left:6px}
+.settings .display-card{min-height:76px}
+.settings .answer{font-size:16px;line-height:1.7}
+#logo{cursor:default}
+@media(max-width:760px){.set-cols{grid-template-columns:minmax(0,1fr)}}
+@media(max-width:520px){.set-head h3{font-size:24px}.set-card{padding:14px}.set-card .tbtn{font-size:15px}}
 </style>
 
 <div id="shell">
   <header id="hud">
-    <button id="logo" type="button" aria-label="디지털 수사대 (선생님 메뉴: 세 번 누르기)">
+    <div id="logo" aria-label="디지털 수사대">
       <svg viewBox="0 0 40 40" aria-hidden="true"><path d="M20 3 35 9v10c0 9-6.4 15.6-15 18C11.4 34.6 5 28 5 19V9z" fill="#0f1736" stroke="#3be6ff" stroke-width="2"/><path d="M13 20l5 5 9-10" fill="none" stroke="#3be6ff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>
       <span><small>CYBER UNIT</small><b>디지털 수사대</b></span>
-    </button>
+    </div>
     <div id="locks" aria-label="진행 상황"></div>
     <div id="hud-r">
-      <button class="hbtn" data-a="displayMenu" aria-label="화면 설정"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="4" width="18" height="13" rx="2"/><path d="M8 21h8M12 17v4"/></svg><span class="lbl">화면</span></button>
+      <button class="hbtn" data-a="teacher" aria-label="설정 열기"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3.2"/><path d="M12 2.8v2.6M12 18.6v2.6M2.8 12h2.6M18.6 12h2.6M5.5 5.5l1.8 1.8M16.7 16.7l1.8 1.8M18.5 5.5l-1.8 1.8M7.3 16.7l-1.8 1.8"/></svg><span class="lbl">설정</span></button>
       <button class="hbtn" data-a="fs" aria-label="전체 화면 전환"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M8 3H3v5m13-5h5v5M3 16v5h5m8 0h5v-5"/></svg></button>
       <div id="timer" aria-live="off">15:00</div>
       <button class="hbtn hint" id="hintBtn" aria-label="힌트" type="button" disabled><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18h6M10 21h4M12 3a6 6 0 0 0-3.5 10.9c.6.5 1 1.2 1 2.1h5c0-.9.4-1.6 1-2.1A6 6 0 0 0 12 3z"/></svg><span class="lbl">힌트</span></button>
@@ -854,7 +873,7 @@ function tick(){
 }
 setInterval(tick, 250);
 
-function displayOptions(){return `<div class="display-options" role="group" aria-label="사용 화면 선택"><button data-a="display" data-v="tablet" aria-pressed="${settings.display==='tablet'}" class="display-card ${settings.display==='tablet'?'selected':''}"><span class="device-icon tablet-icon"></span><span><b>태블릿 부스</b><small>터치 중심 · 가로 / 세로 자동</small></span><i>${settings.display==='tablet'?'✓':''}</i></button><button data-a="display" data-v="classroom" aria-pressed="${settings.display==='classroom'}" class="display-card ${settings.display==='classroom'?'selected':''}"><span class="device-icon classroom-icon"></span><span><b>교실 화면</b><small>전자칠판 / PC · 큰 글씨</small></span><i>${settings.display==='classroom'?'✓':''}</i></button></div>`;}
+function displayOptions(){return `<div class="display-options" role="group" aria-label="사용 화면 선택"><button data-a="display" data-v="tablet" aria-pressed="${settings.display==='tablet'}" class="display-card ${settings.display==='tablet'?'selected':''}"><span class="device-icon tablet-icon"></span><span><b>태블릿 PC</b><small>터치 중심 · 가로 / 세로 자동</small></span><i>${settings.display==='tablet'?'✓':''}</i></button><button data-a="display" data-v="classroom" aria-pressed="${settings.display==='classroom'}" class="display-card ${settings.display==='classroom'?'selected':''}"><span class="device-icon classroom-icon"></span><span><b>교실 화면</b><small>전자칠판 / PC · 큰 글씨</small></span><i>${settings.display==='classroom'?'✓':''}</i></button></div>`;}
 /* ================= scenes ================= */
 const SCENES = {};
 
@@ -868,7 +887,7 @@ SCENES.title = () => `
     <div class="facts"><span class="fact">잠금 <b>5개</b></span><span class="fact">미션 <b>14개</b></span><span class="fact">${settings.untimed?'시간 제한 없음':`제한시간 <b>${Math.round(settings.duration/60)}분</b>`}</span></div>
     ${displayOptions()}
     
-    <div class="row"><button class="btn start-btn" data-a="start">수사 시작하기 <span aria-hidden="true">→</span></button><button class="btn ghost" data-a="teacher">선생님 메뉴</button></div>
+    <div class="row"><button class="btn start-btn" data-a="start">수사 시작하기 <span aria-hidden="true">→</span></button><button class="btn ghost" data-a="teacher">설정</button></div>
   </div>
 </div>`;
 
@@ -1331,33 +1350,59 @@ function prevPlace(){
   if(sc==="end") return { label:"복구 코드 입력", apply(){ S.endAt = null; S.code = ""; go("code"); } };
   return null;
 }
-let logoTaps = [];
+/* settings window: opened from the 설정 button in the top bar */
+let answerShown = false;
+function placeLabel(){
+  const sc = S.scene, m = /^s(\d)$/.exec(sc);
+  if(m) return `잠금 ${m[1]} · 미션 ${Math.min(S[sc].step+1, STAGES[m[1]-1].steps.length)}`;
+  return {title:"시작 화면", intro:"도입 브리핑", final:"범인 추리", code:"복구 코드 입력", end:"복구 완료"}[sc] || "";
+}
 function showTeacher(){
-  const i = stageIndex();
-  const ans = i===5 ? FINAL_ANSWER : i>=0 ? curStep().answer : "게임 진행 중에 정답이 표시돼요.";
-  overlay.innerHTML = `<div class="ov"><div class="sheet teacher" role="dialog" aria-modal="true">
-    <div class="eyebrow" style="color:var(--amber)">선생님 메뉴</div><h3>운영 도구</h3>
-    <div><div class="counter" style="margin-bottom:6px">현재 미션 정답</div><div class="answer">${ans}</div></div>
-    <div><div class="counter" style="margin-bottom:6px">제한시간 (바로 적용)</div>
-      <div class="seg">${[10,15,20,40].map(m=>`<button data-a="setDur" data-m="${m}" class="${settings.duration===m*60?"on":""}">${m}분</button>`).join("")}</div></div>
-    <button class="tbtn ${settings.untimed?"on":""}" data-a="untimed">시간 제한: ${settings.untimed?"없음":"사용"}</button>
-    <div><div class="counter" style="margin-bottom:6px">되돌리기</div>
-      <div class="tgrid">
-        <button class="tbtn" data-a="back" ${prevPlace()?"":"disabled"}>← 이전 단계로</button>
-        <button class="tbtn" data-a="restartStage" ${i>=0&&i<5?"":"disabled"}>이 잠금 처음부터</button>
+  const i = stageIndex(), prev = prevPlace(), inStage = i>=0 && i<5;
+  const ans = i===5 ? FINAL_ANSWER : i>=0 ? curStep().answer : "";
+  const open = overlay.querySelector(".settings"), top = open ? open.scrollTop : 0;
+  overlay.innerHTML = `<div class="ov" data-a="closeOv"><div class="sheet teacher settings" role="dialog" aria-modal="true" aria-labelledby="setTitle">
+    <div class="set-head"><h3 id="setTitle">설정</h3><button class="set-close" data-a="closeOv" aria-label="설정 닫기">닫기</button></div>
+    <div class="set-cols">
+      <div class="set-col">
+        <section class="set-card"><h4>화면</h4>
+          ${displayOptions()}
+          <button class="tbtn" data-a="fs">전체 화면 켜기 / 끄기</button>
+          <p class="tnote">태블릿 PC는 기기 방향에 맞춰 자동으로 배치하고, 교실 화면은 넓은 비율과 큰 글씨를 써요. 바꿔도 진행 기록은 그대로예요.</p>
+        </section>
+        <section class="set-card"><h4>시간</h4>
+          <div class="seg">${[10,15,20,40].map(m=>`<button data-a="setDur" data-m="${m}" class="${!settings.untimed&&settings.duration===m*60?"on":""}">${m}분</button>`).join("")}</div>
+          <div class="set-row">
+            <button class="tbtn ${settings.untimed?"on":""}" data-a="untimed" aria-pressed="${settings.untimed}">시간 제한 ${settings.untimed?"없음":"있음"}</button>
+            <button class="tbtn" data-a="addTime" ${S.startAt&&!settings.untimed?"":"disabled"}>시간 +1분</button>
+          </div>
+        </section>
+        <section class="set-card"><h4>실물 카드</h4>
+          <button class="tbtn ${settings.cards?"on":""}" data-a="toggleCards" aria-pressed="${settings.cards}">실물 카드 사용: ${settings.cards?"켜짐":"꺼짐"}</button>
+          <p class="tnote">켜면 용의자 정보와 저작권 해독표를 화면에서 숨기고, 테이블 위 카드를 보도록 안내해요.</p>
+        </section>
       </div>
-      <p class="tnote" style="margin-top:6px">${prevPlace()?`이전 단계: ${prevPlace().label} (그 단계의 답은 지워지고 다시 풀어요)`:"시작 화면에서는 되돌릴 단계가 없어요."}</p></div>
-    <div class="tgrid">
-      <button class="tbtn ${settings.cards?"on":""}" data-a="toggleCards">실물 카드 사용: ${settings.cards?"켜짐":"꺼짐"}</button>
-      <button class="tbtn" data-a="skip" ${i>=0&&i<5?"":"disabled"}>이 미션 건너뛰기</button>
-      <button class="tbtn" data-a="addTime">시간 +1분</button>
-      <button class="tbtn" data-a="fs">전체 화면</button>
-      <button class="tbtn warn" data-a="reset">처음 화면으로 (새 팀)</button>
-      <button class="tbtn" data-a="closeOv">닫기</button>
+      <div class="set-col">
+        <section class="set-card"><h4>진행</h4>
+          <p class="set-now">지금 위치 <b>${placeLabel()}</b></p>
+          <div class="set-row">
+            <button class="tbtn" data-a="back" ${prev?"":"disabled"}>← 이전 단계로</button>
+            <button class="tbtn" data-a="skip" ${inStage?"":"disabled"}>미션 건너뛰기 →</button>
+            <button class="tbtn" data-a="restartStage" ${inStage?"":"disabled"}>이 잠금 처음부터</button>
+            <button class="tbtn warn" data-a="reset">처음 화면으로</button>
+          </div>
+          <p class="tnote">${prev?`이전 단계는 <b>${prev.label}</b>예요. 돌아가면 그 단계의 답이 지워지고 다시 풀어요.`:"시작 화면에서는 되돌릴 단계가 없어요."}</p>
+          <details><summary>원하는 잠금으로 바로 가기</summary><div class="jump-grid">${STAGES.map((st,n)=>`<button class="tbtn" data-a="jump" data-n="${n}">${n+1}. ${st.short}</button>`).join('')}</div><p class="tnote">고른 잠금을 처음부터 열어요. 다른 잠금의 기록은 그대로예요.</p></details>
+        </section>
+        <section class="set-card"><h4>정답 (선생님용)</h4>
+          ${!ans ? `<p class="tnote">게임을 진행하는 동안 지금 미션의 정답을 볼 수 있어요.</p>`
+            : answerShown ? `<div class="answer">${ans}</div>`
+            : `<button class="tbtn" data-a="showAnswer">지금 미션 정답 보기</button><p class="tnote">학생이 보지 않을 때 눌러 주세요.</p>`}
+        </section>
+      </div>
     </div>
-    <details><summary>수업용 미션 바로가기</summary><div class="jump-grid">${STAGES.map((st,n)=>`<button class="tbtn" data-a="jump" data-n="${n}">${n+1}. ${st.short}</button>`).join('')}</div><p class="tnote">선택한 미션을 처음부터 엽니다. 다른 미션 기록은 유지됩니다.</p></details>
-    <p class="tnote">실물 카드 사용을 켜면 용의자 정보와 저작권 해독표가 화면에서 숨겨지고, 테이블 위 카드를 보도록 안내해요. 화면 왼쪽 위 방패를 3번 연속 누르면 이 메뉴가 열려요.</p>
   </div></div>`;
+  overlay.querySelector(".settings").scrollTop = top;
 }
 Object.assign(A, {
   closeOv(el, e){ if(e && e.target!==el) return; overlay.innerHTML = ""; },
@@ -1365,7 +1410,7 @@ Object.assign(A, {
   setDur(el){ settings.untimed=false; S.overtime=false; timeoutShown=false; settings.duration = +el.dataset.m*60; save(); showTeacher(); renderHud(); if(S.scene==="title") render(); },
   toggleCards(){ settings.cards = !settings.cards; save(); render(); showTeacher(); },
   skip(){
-    const i = stageIndex(); overlay.innerHTML = ""; if(i<0 || i>4) return;
+    const i = stageIndex(); overlay.innerHTML = ""; answerShown = false; if(i<0 || i>4) return;
     const key = "s"+(i+1), n = STAGES[i].steps.length;
     if(S[key].step < n-1){ nextStep(key); return; }
     completeStage(i);
@@ -1377,9 +1422,9 @@ Object.assign(A, {
       else { const d=document.documentElement, fn=d.requestFullscreen||d.webkitRequestFullscreen; if(!fn) throw new Error(); await fn.call(d); }
     }catch(e){toast("이 브라우저는 전체 화면 전환을 지원하지 않아요. 현재 화면 크기에 맞춰 계속 진행할 수 있어요.","info");}
   },
-  teacher(){ showTeacher(); },
-  displayMenu(){ overlay.innerHTML=`<div class="ov"><div class="sheet" role="dialog" aria-modal="true" aria-label="화면 설정"><div class="eyebrow">DISPLAY SETTINGS</div><h3>어떤 화면에서 활동하나요?</h3>${displayOptions()}<p class="tnote">태블릿은 기기 방향에 맞춰 자동 배치하고, 교실 화면은 넓은 비율과 큰 글씨를 사용해요. 변경해도 진행 기록은 유지돼요.</p><button class="btn" data-a="closeOv">적용 완료</button></div></div>`; },
-  display(el){settings.display=el.dataset.v;if(S.scene==='title')settings.untimed=settings.display==='classroom';if(settings.display==='classroom')settings.cards=false; save();render();if(overlay.innerHTML) A.displayMenu();},
+  teacher(){ answerShown = false; showTeacher(); },
+  showAnswer(){ answerShown = true; showTeacher(); },
+  display(el){settings.display=el.dataset.v;if(S.scene==='title')settings.untimed=settings.display==='classroom';if(settings.display==='classroom')settings.cards=false; save();render();if(overlay.querySelector(".settings")) showTeacher();},
   untimed(){settings.untimed=!settings.untimed;S.overtime=false;timeoutShown=false;$("#alertHost").innerHTML="";save();render();showTeacher();},
   jump(el){const n=+el.dataset.n,key='s'+(n+1); S[key]=fresh()[key];S.done=S.done.filter(i=>i!==n);S.pending=null;S.cluePending=null;S.endAt=null;S.startAt=S.startAt||Date.now();overlay.innerHTML='';go(key);},
   reset(el){ if(el.dataset.sure!=="1"){ el.dataset.sure="1"; el.textContent="정말 처음으로? 한 번 더 누르기"; return; } resetGame(); },
@@ -1453,10 +1498,6 @@ document.addEventListener("click", e => {
 });
 $("#hintBtn").addEventListener("click", showHint);
 $("#soundBtn").addEventListener("click", showSound);
-$("#logo").addEventListener("click", () => {
-  const now = Date.now(); logoTaps = logoTaps.filter(t => now - t < 900); logoTaps.push(now);
-  if(logoTaps.length >= 3){ logoTaps = []; showTeacher(); }
-});
 
 /* resume a pending success sheet after a reload */
 render();
